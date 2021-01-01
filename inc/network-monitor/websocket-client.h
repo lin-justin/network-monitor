@@ -1,5 +1,5 @@
-#ifndef WEBSOCKET_CLIENT_H
-#define WEBSOCKET_CLIENT_H
+#ifndef NETWORK_MONITOR_WEBSOCKET_CLIENT_H
+#define NETWORK_MONITOR_WEBSOCKET_CLIENT_H
 
 #include <boost/asio.hpp>
 #include <boost/beast.hpp>
@@ -109,4 +109,4 @@ namespace NetworkMonitor
 
 } // namespace NetworkMonitor
 
-#endif // WEBSOCKET_CLIENT_H
+#endif // NETWORK_MONITOR_WEBSOCKET_CLIENT_H
