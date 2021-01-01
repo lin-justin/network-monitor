@@ -16,14 +16,15 @@ namespace NetworkMonitor
    class WebSocketClient
    {
        public:
+
         /*! \brief Construct a WebSocket client
-            *
-            *  \note This constructor does not intiate a connection
-            * 
-            * \param url The URL of the server
-            * \param port The port of the server
-            * \param ioc The io_context object. The user takes care of calling ioc.run()
-            */
+        *
+        *  \note This constructor does not intiate a connection
+        * 
+        * \param url The URL of the server
+        * \param port The port of the server
+        * \param ioc The io_context object. The user takes care of calling ioc.run()
+        */
         WebSocketClient(
             const std::string& url,
             const std::string& port,
