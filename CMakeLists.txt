@@ -55,6 +55,7 @@ target_link_libraries(network-monitor-tests
     PRIVATE
         network-monitor
         Boost::Boost
+        OpenSSL::OpenSSL
         std::filesystem
 )
 add_test(
