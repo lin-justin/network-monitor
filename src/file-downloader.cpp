@@ -1,8 +1,11 @@
 #include <network-monitor/file-downloader.h>
 
+#include <nlohmann/json.hpp>
+
 #include <curl/curl.h>
 
 #include <filesystem>
+#include <fstream>
 #include <stdio.h>
 #include <string>
 
@@ -44,4 +47,25 @@ bool NetworkMonitor::DownloadFile(
     fclose(fp);
 
     return res == CURLE_OK;
+}
+
+nlohmann::json NetworkMonitor::ParseJsonFile(
+    const std::filesystem::path& source
+)
+{
+    nlohmann::json parsed {};
+    if (!std::filesystem::exists(source))
+    {
+        return parsed;
+    }
+    try
+    {
+        std::ifstream file { source };
+        file >> parsed;
+    }
+    catch (...)
+    {
+        // Will return an empty object
+    }
+    return parsed;
 }
