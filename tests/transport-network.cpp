@@ -1,14 +1,19 @@
+#include <network-monitor/file-downloader.h>
 #include <network-monitor/transport-network.h>
 
 #include <boost/test/unit_test.hpp>
+
+#include <nlohmann/json.hpp>
 
 #include <filesystem>
 #include <fstream>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 using NetworkMonitor::Id;
 using NetworkMonitor::Line;
+using NetworkMonitor::ParseJsonFile;
 using NetworkMonitor::Route;
 using NetworkMonitor::Station;
 using NetworkMonitor::TransportNetwork;
@@ -25,8 +30,7 @@ BOOST_AUTO_TEST_CASE(basic)
     bool ok {false};
 
     // Add a station.
-    Station station
-    {
+    Station station {
         "station_000",
         "Station Name",
     };
@@ -40,8 +44,7 @@ BOOST_AUTO_TEST_CASE(duplicate_id)
     bool ok {false};
 
     // Can't add the same station twice.
-    Station station
-    {
+    Station station {
         "station_000",
         "Station Name",
     };
@@ -57,15 +60,13 @@ BOOST_AUTO_TEST_CASE(duplicate_name)
     bool ok {false};
 
     // It's ok to add a station with the same name, but different ID.
-    Station station0
-    {
+    Station station0 {
         "station_000",
         "Same Name",
     };
     ok = nw.AddStation(station0);
     BOOST_REQUIRE(ok);
-    Station station1
-    {
+    Station station1 {
         "station_001",
         "Same Name",
     };
@@ -86,13 +87,11 @@ BOOST_AUTO_TEST_CASE(basic)
     // route0: 0 ---> 1
 
     // First, add the stations.
-    Station station0
-    {
+    Station station0 {
         "station_000",
         "Station Name 0",
     };
-    Station station1
-    {
+    Station station1 {
         "station_001",
         "Station Name 1",
     };
@@ -102,8 +101,7 @@ BOOST_AUTO_TEST_CASE(basic)
     BOOST_REQUIRE(ok);
 
     // Then, add the line, with the two routes.
-    Route route0
-    {
+    Route route0 {
         "route_000",
         "Route Name 0",
         "line_000",
@@ -111,8 +109,7 @@ BOOST_AUTO_TEST_CASE(basic)
         "station_001",
         {"station_000", "station_001"},
     };
-    Line line
-    {
+    Line line {
         "line_000",
         "Line Name",
         {route0},
@@ -129,28 +126,23 @@ BOOST_AUTO_TEST_CASE(shared_stations)
     // Define a line with 2 routes going through some shared stations.
     // route0: 0 ---> 1 ---> 2
     // route1: 3 ---> 1 ---> 2
-    Station station0
-    {
+    Station station0 {
         "station_000",
         "Station Name 0",
     };
-    Station station1
-    {
+    Station station1 {
         "station_001",
         "Station Name 1",
     };
-    Station station2
-    {
+    Station station2 {
         "station_002",
         "Station Name 2",
     };
-    Station station3
-    {
+    Station station3 {
         "station_003",
         "Station Name 3",
     };
-    Route route0
-    {
+    Route route0 {
         "route_000",
         "Route Name 0",
         "line_000",
@@ -158,8 +150,7 @@ BOOST_AUTO_TEST_CASE(shared_stations)
         "station_002",
         {"station_000", "station_001", "station_002"},
     };
-    Route route1
-    {
+    Route route1 {
         "route_001",
         "Route Name 1",
         "line_000",
@@ -167,8 +158,7 @@ BOOST_AUTO_TEST_CASE(shared_stations)
         "station_002",
         {"station_003", "station_001", "station_002"},
     };
-    Line line
-    {
+    Line line {
         "line_000",
         "Line Name",
         {route0, route1},
@@ -189,18 +179,15 @@ BOOST_AUTO_TEST_CASE(duplicate)
     bool ok {false};
 
     // Can't add the same line twice.
-    Station station0
-    {
+    Station station0 {
         "station_000",
         "Station Name 0",
     };
-    Station station1
-    {
+    Station station1 {
         "station_001",
         "Station Name 1",
     };
-    Route route0
-    {
+    Route route0 {
         "route_000",
         "Route Name 0",
         "line_000",
@@ -208,8 +195,7 @@ BOOST_AUTO_TEST_CASE(duplicate)
         "station_001",
         {"station_000", "station_001"},
     };
-    Line line
-    {
+    Line line {
         "line_000",
         "Line Name",
         {route0},
@@ -231,23 +217,19 @@ BOOST_AUTO_TEST_CASE(missing_stations)
 
     // Define a line with 1 route.
     // route0: 0 ---> 1 ---> 2
-    Station station0
-    {
+    Station station0 {
         "station_000",
         "Station Name 0",
     };
-    Station station1
-    {
+    Station station1 {
         "station_001",
         "Station Name 1",
     };
-    Station station2
-    {
+    Station station2 {
         "station_002",
         "Station Name 2",
     };
-    Route route0
-    {
+    Route route0 {
         "route_000",
         "Route Name 0",
         "line_000",
@@ -255,8 +237,7 @@ BOOST_AUTO_TEST_CASE(missing_stations)
         "station_002",
         {"station_000", "station_001", "station_002"},
     };
-    Line line
-    {
+    Line line {
         "line_000",
         "Line Name",
         {route0},
@@ -292,23 +273,19 @@ BOOST_AUTO_TEST_CASE(basic)
 
     // Add a line with 1 route.
     // route0: 0 ---> 1 ---> 2
-    Station station0
-    {
+    Station station0 {
         "station_000",
         "Station Name 0",
     };
-    Station station1
-    {
+    Station station1 {
         "station_001",
         "Station Name 1",
     };
-    Station station2
-    {
+    Station station2 {
         "station_002",
         "Station Name 2",
     };
-    Route route0
-    {
+    Route route0 {
         "route_000",
         "Route Name 0",
         "line_000",
@@ -316,8 +293,7 @@ BOOST_AUTO_TEST_CASE(basic)
         "station_002",
         {"station_000", "station_001", "station_002"},
     };
-    Line line
-    {
+    Line line {
         "line_000",
         "Line Name",
         {route0},
@@ -334,13 +310,10 @@ BOOST_AUTO_TEST_CASE(basic)
     BOOST_REQUIRE_EQUAL(nw.GetPassengerCount(station0.id), 0);
     BOOST_REQUIRE_EQUAL(nw.GetPassengerCount(station1.id), 0);
     BOOST_REQUIRE_EQUAL(nw.GetPassengerCount(station2.id), 0);
-    try
-    {
+    try {
         auto count {nw.GetPassengerCount("station_42")}; // Not in the network
         BOOST_REQUIRE(false);
-    }
-    catch (const std::runtime_error& e)
-    {
+    } catch (const std::runtime_error& e) {
         BOOST_REQUIRE(true);
     }
 
@@ -379,28 +352,23 @@ BOOST_AUTO_TEST_CASE(basic)
     // Add a line with 1 route.
     // route0: 0 ---> 1 ---> 2
     // Plus a station served by no routes: 3.
-    Station station0
-    {
+    Station station0 {
         "station_000",
         "Station Name 0",
     };
-    Station station1
-    {
+    Station station1 {
         "station_001",
         "Station Name 1",
     };
-    Station station2
-    {
+    Station station2 {
         "station_002",
         "Station Name 2",
     };
-    Station station3
-    {
+    Station station3 {
         "station_003",
         "Station Name 3",
     };
-    Route route0
-    {
+    Route route0 {
         "route_000",
         "Route Name 0",
         "line_000",
@@ -408,8 +376,7 @@ BOOST_AUTO_TEST_CASE(basic)
         "station_002",
         {"station_000", "station_001", "station_002"},
     };
-    Line line
-    {
+    Line line {
         "line_000",
         "Line Name",
         {route0},
@@ -424,7 +391,7 @@ BOOST_AUTO_TEST_CASE(basic)
     BOOST_REQUIRE(ok);
 
     // Check the routes served.
-    std::vector<Id> routes;
+    std::vector<Id> routes {};
     routes = nw.GetRoutesServingStation(station0.id);
     BOOST_REQUIRE_EQUAL(routes.size(), 1);
     BOOST_CHECK(routes[0] == route0.id);
@@ -444,8 +411,7 @@ BOOST_AUTO_TEST_CASE(lone_station)
     bool ok {false};
 
     // Add a single station.
-    Station station0
-    {
+    Station station0 {
         "station_000",
         "Station Name 0",
     };
@@ -468,23 +434,19 @@ BOOST_AUTO_TEST_CASE(basic)
 
     // Add a line with 1 route.
     // route0: 0 ---> 1 ---> 2
-    Station station0
-    {
+    Station station0 {
         "station_000",
         "Station Name 0",
     };
-    Station station1
-    {
+    Station station1 {
         "station_001",
         "Station Name 1",
     };
-    Station station2
-    {
+    Station station2 {
         "station_002",
         "Station Name 2",
     };
-    Route route0
-    {
+    Route route0 {
         "route_000",
         "Route Name 0",
         "line_000",
@@ -492,8 +454,7 @@ BOOST_AUTO_TEST_CASE(basic)
         "station_002",
         {"station_000", "station_001", "station_002"},
     };
-    Line line
-    {
+    Line line {
         "line_000",
         "Line Name",
         {route0},
@@ -537,28 +498,23 @@ BOOST_AUTO_TEST_CASE(over_route)
     // route0: 0 ---> 1 ---> 2 ---> 3
     // route1: 3 ---> 1 ---> 2
     // route2: 3 ---> 1 ---> 0
-    Station station0
-    {
+    Station station0 {
         "station_000",
         "Station Name 0",
     };
-    Station station1
-    {
+    Station station1 {
         "station_001",
         "Station Name 1",
     };
-    Station station2
-    {
+    Station station2 {
         "station_002",
         "Station Name 2",
     };
-    Station station3
-    {
+    Station station3 {
         "station_003",
         "Station Name 3",
     };
-    Route route0
-    {
+    Route route0 {
         "route_000",
         "Route Name 0",
         "line_000",
@@ -566,8 +522,7 @@ BOOST_AUTO_TEST_CASE(over_route)
         "station_003",
         {"station_000", "station_001", "station_002", "station_003"},
     };
-    Route route1
-    {
+    Route route1 {
         "route_001",
         "Route Name 1",
         "line_000",
@@ -575,8 +530,7 @@ BOOST_AUTO_TEST_CASE(over_route)
         "station_002",
         {"station_003", "station_001", "station_002"},
     };
-    Route route2
-    {
+    Route route2 {
         "route_002",
         "Route Name 2",
         "line_000",
@@ -584,8 +538,7 @@ BOOST_AUTO_TEST_CASE(over_route)
         "station_000",
         {"station_003", "station_001", "station_000"},
     };
-    Line line
-    {
+    Line line {
         "line_000",
         "Line Name",
         {route0, route1, route2},
@@ -647,6 +600,144 @@ BOOST_AUTO_TEST_CASE(over_route)
 }
 
 BOOST_AUTO_TEST_SUITE_END(); // TravelTime
+
+BOOST_AUTO_TEST_SUITE(FromJson);
+
+// We need this utility function to verify the routes as returned by
+// TransportNetwork::GetRoutesServingStation, which does not sort its output.
+std::vector<Id> GetSortedIds(std::vector<Id>& routes)
+{
+    std::vector<Id> ids {routes};
+    std::sort(ids.begin(), ids.end());
+    return ids;
+}
+
+BOOST_AUTO_TEST_CASE(from_json_1line_1route)
+{
+    auto testFilePath {
+        std::filesystem::path(TEST_DATA) / "from_json_1line_1route.json"
+    };
+    auto src = ParseJsonFile(testFilePath);
+
+    TransportNetwork nw {};
+    auto ok {nw.FromJson(std::move(src))};
+    BOOST_REQUIRE(ok);
+
+    auto routes {nw.GetRoutesServingStation("station_0")};
+    BOOST_REQUIRE_EQUAL(routes.size(), 1);
+    BOOST_CHECK_EQUAL(routes[0], "route_0");
+}
+
+BOOST_AUTO_TEST_CASE(from_json_1line_2routes)
+{
+    auto testFilePath {
+        std::filesystem::path(TEST_DATA) / "from_json_1line_2routes.json"
+    };
+    auto src = ParseJsonFile(testFilePath);
+
+    TransportNetwork nw {};
+    auto ok {nw.FromJson(std::move(src))};
+    BOOST_REQUIRE(ok);
+
+    std::vector<Id> routes {};
+    routes = nw.GetRoutesServingStation("station_0");
+    BOOST_REQUIRE_EQUAL(routes.size(), 1);
+    BOOST_CHECK_EQUAL(routes[0], "route_0");
+    routes = nw.GetRoutesServingStation("station_1");
+    BOOST_REQUIRE_EQUAL(routes.size(), 2);
+    BOOST_CHECK(
+        GetSortedIds(routes) == std::vector<Id>({"route_0", "route_1"})
+    );
+}
+
+BOOST_AUTO_TEST_CASE(from_json_2lines_2routes)
+{
+    auto testFilePath {
+        std::filesystem::path(TEST_DATA) / "from_json_2lines_2routes.json"
+    };
+    auto src = ParseJsonFile(testFilePath);
+
+    TransportNetwork nw {};
+    auto ok {nw.FromJson(std::move(src))};
+    BOOST_REQUIRE(ok);
+
+    std::vector<Id> routes {};
+    routes = nw.GetRoutesServingStation("station_0");
+    BOOST_REQUIRE_EQUAL(routes.size(), 2);
+    BOOST_CHECK_EQUAL(routes[0], "route_0");
+    BOOST_CHECK_EQUAL(routes[1], "route_1");
+    routes = nw.GetRoutesServingStation("station_1");
+    BOOST_REQUIRE_EQUAL(routes.size(), 2);
+    BOOST_CHECK(
+        GetSortedIds(routes) == std::vector<Id>({"route_0", "route_1"})
+    );
+}
+
+BOOST_AUTO_TEST_CASE(from_json_travel_times)
+{
+    auto testFilePath {
+        std::filesystem::path(TEST_DATA) / "from_json_travel_times.json"
+    };
+    auto src = ParseJsonFile(testFilePath);
+
+    TransportNetwork nw {};
+    auto ok {nw.FromJson(std::move(src))};
+    BOOST_REQUIRE(ok);
+
+    BOOST_CHECK_EQUAL(nw.GetTravelTime("station_0", "station_1"), 1);
+    BOOST_CHECK_EQUAL(nw.GetTravelTime("station_1", "station_0"), 1);
+    BOOST_CHECK_EQUAL(nw.GetTravelTime("station_1", "station_2"), 2);
+    BOOST_CHECK_EQUAL(
+        nw.GetTravelTime("line_0", "route_0", "station_0", "station_2"), 1 + 2
+    );
+}
+
+BOOST_AUTO_TEST_CASE(fail_on_bad_json)
+{
+    nlohmann::json src {
+        // Missing "stations"!
+        {"lines", {}},
+        {"travel_times", {}},
+    };
+    TransportNetwork nw {};
+    BOOST_CHECK_THROW(nw.FromJson(std::move(src)), nlohmann::json::exception);
+}
+
+BOOST_AUTO_TEST_CASE(fail_on_good_json_bad_items)
+{
+    nlohmann::json src {
+        {"stations", {
+            {
+                {"station_id", "station_0"},
+                {"name", "Station 0 Name"},
+            },
+            {
+                {"station_id", "station_0"},
+                {"name", "Station 0 Name"}, // station_0 is a duplicate!
+            },
+        }},
+        {"lines", {}},
+        {"travel_times", {}},
+    };
+    TransportNetwork nw {};
+    BOOST_CHECK_THROW(nw.FromJson(std::move(src)), std::runtime_error);
+}
+
+BOOST_AUTO_TEST_CASE(fail_on_bad_travel_times)
+{
+    // In this file, we have an invalid travel time (for a station that does
+    // not exist).
+    auto testFilePath {
+        std::filesystem::path(TEST_DATA) / "from_json_bad_travel_times.json"
+    };
+    auto src = ParseJsonFile(testFilePath);
+
+    TransportNetwork nw {};
+    auto ok {nw.FromJson(std::move(src))};
+    BOOST_REQUIRE(!ok);
+}
+
+BOOST_AUTO_TEST_SUITE_END(); // FromJson
 
 BOOST_AUTO_TEST_SUITE_END(); // class_TransportNetwork
 

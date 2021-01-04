@@ -16,16 +16,14 @@ find_package(Filesystem REQUIRED)
 find_package(nlohmann_json REQUIRED)
 find_package(OpenSSL REQUIRED)
 
-# Called before any target is defined
+# Called before any other target is defined.
 enable_testing()
 
 # Static library
 set(LIB_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/file-downloader.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/transport-network.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/websocket-client.cpp"
 )
-
 add_library(network-monitor STATIC ${LIB_SOURCES})
 target_compile_features(network-monitor
     PUBLIC
@@ -45,20 +43,21 @@ target_link_libraries(network-monitor
         CURL::CURL
 )
 
-# TESTS
-set(TEST_SOURCES
+# Tests
+set(TESTS_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/tests/file-downloader.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/tests/main.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/tests/transport-network.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/tests/websocket-client.cpp"
 )
-add_executable(network-monitor-tests ${TEST_SOURCES})
+add_executable(network-monitor-tests ${TESTS_SOURCES})
 target_compile_features(network-monitor-tests
     PRIVATE
         cxx_std_17
 )
 target_compile_definitions(network-monitor-tests
     PRIVATE
+        TEST_DATA="${CMAKE_CURRENT_SOURCE_DIR}/tests/test-data"
         TESTS_CACERT_PEM="${CMAKE_CURRENT_SOURCE_DIR}/tests/cacert.pem"
         TESTS_NETWORK_LAYOUT_JSON="${CMAKE_CURRENT_SOURCE_DIR}/tests/network-layout.json"
 )
@@ -73,7 +72,6 @@ add_test(
     NAME network-monitor-tests
     COMMAND $<TARGET_FILE:network-monitor-tests>
 )
-
 # This tells CMake to check for a specific output to verify the test outcome.
 # When all unit tests pass, Boost.Test prints "No errors detected".
 set_tests_properties(network-monitor-tests PROPERTIES
